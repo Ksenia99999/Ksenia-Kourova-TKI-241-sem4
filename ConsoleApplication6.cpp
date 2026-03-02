@@ -7,7 +7,7 @@
 
 using namespace std;
 
-// Класс для чтения чисел из потока (например, с клавиатуры)
+// Класс для чтения чисел из потока
 class ptin_iterator {
     istream* in_stream;   // Откуда читаем
     int value;            // Текущее число
@@ -86,7 +86,7 @@ public:
     // Оператор * для итератора вывода
     ptout_iterator& operator*() { return *this; }
 
-    // Оператор присваивания - здесь происходит запись
+    // Оператор присваивания 
     ptout_iterator& operator=(int value) {
         if (out_stream) {
             *out_stream << value << separator;  // Число + два пробела
@@ -94,7 +94,7 @@ public:
         return *this;
     }
 
-    // Операторы ++ (ничего не делают, но должны быть)
+    // Операторы ++ 
     ptout_iterator& operator++() { return *this; }
     ptout_iterator& operator++(int) { return *this; }
 };
@@ -158,4 +158,5 @@ int main() {
     cout << "После каждого числа добавлено два пробела." << endl;
 
     return 0;
+
 }
