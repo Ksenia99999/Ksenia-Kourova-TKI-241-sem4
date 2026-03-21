@@ -146,11 +146,12 @@ int main() {
     // Закрываем файл
     file.close();
 
-    // Показываем результат
+    // Показываем результат (используем тот же алгоритм замены)
     cout << "\nРезультат (с заменой 0 на 10): ";
-    for (int x : numbers) {
-        if (x == 0) cout << "10 ";
-        else cout << x << " ";
+    vector<int> result(numbers.size());
+    replace_copy(numbers.begin(), numbers.end(), result.begin(), 0, 10);
+    for (int x : result) {
+        cout << x << " ";
     }
     cout << endl;
 
@@ -158,5 +159,4 @@ int main() {
     cout << "После каждого числа добавлено два пробела." << endl;
 
     return 0;
-
 }
