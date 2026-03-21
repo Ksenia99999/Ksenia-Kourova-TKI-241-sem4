@@ -50,7 +50,7 @@ public:
         return *this;
     }
 
-    // Постфиксный ++ (нужен для интерфейса)
+    // Постфиксный ++ 
     ptin_iterator operator++(int) {
         ptin_iterator temp = *this;
         ++(*this);
