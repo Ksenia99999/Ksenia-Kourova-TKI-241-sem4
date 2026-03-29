@@ -1,62 +1,48 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
-#include <algorithm>
-#include <iterator>
-#include <string>
 #include <vector>
-
+#include <algorithm>
+#include <string>
+#include <iterator>
 using namespace std;
 
-// Класс для чтения чисел из потока
+// Итератор для чтения чисел из потока 
 class ptin_iterator {
-    istream* in_stream;   // Откуда читаем
-    int value;            // Текущее число
-    bool is_end;          // Флаг конца
-
+    istream* in_stream;
+    int value;
+    bool is_end;
 public:
-    // Типы, нужные для работы итератора
     using iterator_category = input_iterator_tag;
     using value_type = int;
     using difference_type = ptrdiff_t;
     using pointer = const int*;
     using reference = const int&;
 
-    // Конструктор конца итератора
     ptin_iterator() : in_stream(nullptr), value(0), is_end(true) {}
 
-    // Конструктор для чтения из потока
     ptin_iterator(istream& s) : in_stream(&s), value(0), is_end(false) {
-        ++(*this);  // Сразу читаем первое число
+        ++(*this);
     }
 
-    // Получить текущее число
     reference operator*() const { return value; }
-
-    // Получить указатель на текущее число
     pointer operator->() const { return &value; }
 
-    // Перейти к следующему числу
     ptin_iterator& operator++() {
-        // Пробуем прочитать следующее число
         if (in_stream && (*in_stream >> value)) {
-            // Прочитали успешно - ничего не делаем
         }
         else {
-            // Читать больше нечего
             is_end = true;
             value = 0;
         }
         return *this;
     }
 
-    // Постфиксный ++ (нужен для интерфейса)
     ptin_iterator operator++(int) {
         ptin_iterator temp = *this;
         ++(*this);
         return temp;
     }
 
-    // Сравнение итераторов
     bool operator==(const ptin_iterator& other) const {
         return (is_end && other.is_end) ||
             (is_end == other.is_end && in_stream == other.in_stream);
@@ -67,96 +53,61 @@ public:
     }
 };
 
-// Класс для записи чисел с двумя пробелами после каждого
-class ptout_iterator {
-    ostream* out_stream;   // Куда записываем
-    string separator;      // Разделитель (два пробела)
-
-public:
-    // Типы для итератора вывода
-    using iterator_category = output_iterator_tag;
-    using value_type = void;
-    using difference_type = void;
-    using pointer = void;
-    using reference = void;
-
-    // Конструктор
-    ptout_iterator(ostream& s, const string& sep) : out_stream(&s), separator(sep) {}
-
-    // Оператор * для итератора вывода
-    ptout_iterator& operator*() { return *this; }
-
-    // Оператор присваивания 
-    ptout_iterator& operator=(int value) {
-        if (out_stream) {
-            *out_stream << value << separator;  // Число + два пробела
-        }
-        return *this;
-    }
-
-    // Операторы ++ 
-    ptout_iterator& operator++() { return *this; }
-    ptout_iterator& operator++(int) { return *this; }
-};
-
 int main() {
-    // Просим пользователя ввести имя файла
+    // Ввод имени файла
     cout << "Введите имя файла: ";
     string name;
     cin >> name;
 
-    // Читаем числа
-    cout << "Введите целые числа (для окончания введите любой символ, например 'q'):" << endl;
+    // Ввод чисел
+    cout << "Введите целые числа (для окончания введите любой нечисловой символ): " << endl;
 
     vector<int> numbers;
+    ptin_iterator begin(cin);
+    ptin_iterator end;
 
-    // Создаем итераторы для чтения
-    ptin_iterator begin(cin);   // Начало - читаем с клавиатуры
-    ptin_iterator end;           // Конец
+    // Чтение потока ввода от начала до конца сразу в вектор
+    while (begin != end) {
+        numbers.push_back(*begin);
+        ++begin;
+    }
 
-    // Копируем все введенные числа в вектор
-    copy(begin, end, back_inserter(numbers));
-
-    // Проверяем, что числа введены
+    // Проверка на пустоту
     if (numbers.empty()) {
         cout << "Вы не ввели ни одного числа!" << endl;
         return 1;
     }
 
-    // Показываем, что ввели
+    // Вывод введённых чисел
     cout << "\nВведено " << numbers.size() << " чисел: ";
     for (int x : numbers) {
-        cout << x << " ";
+        cout << x << "  ";
     }
     cout << endl;
 
-    // Открываем файл для записи
+    // Открытие файла
     ofstream file(name);
     if (!file.is_open()) {
         cout << "Не удалось создать файл " << name << endl;
         return 1;
     }
 
-    // Создаем итератор для записи с двумя пробелами
-    ptout_iterator out(file, "  ");
-
-    // Копируем числа с заменой 0 на 10
+    // Запись в файл с заменой 0 на 10 
+    ostream_iterator<int> out(file, "  ");
     replace_copy(numbers.begin(), numbers.end(), out, 0, 10);
 
-    // Закрываем файл
     file.close();
 
-    // Показываем результат (используем тот же алгоритм замены)
+    // Вывод результата
     cout << "\nРезультат (с заменой 0 на 10): ";
     vector<int> result(numbers.size());
     replace_copy(numbers.begin(), numbers.end(), result.begin(), 0, 10);
     for (int x : result) {
-        cout << x << " ";
+        cout << x << "  ";
     }
     cout << endl;
 
     cout << "\nЧисла записаны в файл " << name << endl;
-    cout << "После каждого числа добавлено два пробела." << endl;
 
     return 0;
 }
