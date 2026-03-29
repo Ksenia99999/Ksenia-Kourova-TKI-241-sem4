@@ -1,59 +1,10 @@
-﻿#include <iostream>
+#include <iostream>
 #include <vector>
 #include <algorithm>
 #include <iterator>
-#include <fstream>
-#include <string>
 #include <locale>
 
 using namespace std;
-
-/**
- * @brief Пользовательский итератор ввода для чтения целых чисел из потока
- */
-class ptin_iterator {
-    istream* in_stream;
-    int value;
-    bool end_marker;
-
-public:
-    using iterator_category = input_iterator_tag;
-    using value_type = int;
-    using difference_type = ptrdiff_t;
-    using pointer = const int*;
-    using reference = const int&;
-
-    ptin_iterator() : in_stream(nullptr), value(0), end_marker(true) {}
-
-    ptin_iterator(istream& s) : in_stream(&s), value(0), end_marker(false) {
-        ++(*this);
-    }
-
-    reference operator*() const { return value; }
-    pointer operator->() const { return &value; }
-
-    ptin_iterator& operator++() {
-        if (in_stream && !(*in_stream >> value)) {
-            end_marker = true;
-        }
-        return *this;
-    }
-
-    ptin_iterator operator++(int) {
-        ptin_iterator temp = *this;
-        ++(*this);
-        return temp;
-    }
-
-    bool operator==(const ptin_iterator& other) const {
-        return (end_marker && other.end_marker) ||
-            (end_marker == other.end_marker && in_stream == other.in_stream);
-    }
-
-    bool operator!=(const ptin_iterator& other) const {
-        return !(*this == other);
-    }
-};
 
 /**
  * @brief Пользовательский итератор вывода для записи целых чисел в поток
@@ -86,27 +37,33 @@ public:
 };
 
 int main() {
-    setlocale(LC_ALL, "Russian");
 
-    string filename;
-    cout << "Введите имя файла с вектором V (например, vector.txt): ";
-    cin >> filename;
 
-    ifstream file(filename);
-    if (!file.is_open()) {
-        cerr << "Ошибка: Не удалось открыть файл " << filename << endl;
+    int n;
+    cout << "Введите количество элементов вектора V: ";
+    cin >> n;
+
+    if (n < 3) {
+        cerr << "Ошибка: Вектор должен содержать не менее трех элементов" << endl;
         return 1;
     }
 
-    ptin_iterator it_begin(file);
-    ptin_iterator it_end;
-
     vector<int> V;
-    copy(it_begin, it_end, back_inserter(V));
-    file.close();
+    cout << "Введите " << n << " целых чисел (элементы могут повторяться):" << endl;
+    for (int i = 0; i < n; ++i) {
+        int value;
+        cin >> value;
+        V.push_back(value);
+    }
 
-    if (V.size() < 3) {
-        cerr << "Ошибка: Вектор должен содержать не менее трех элементов" << endl;
+    // Проверка, что в векторе есть хотя бы 3 различных числа
+    vector<int> temp = V;
+    sort(temp.begin(), temp.end());
+    auto last = unique(temp.begin(), temp.end());
+    temp.erase(last, temp.end());
+
+    if (temp.size() < 3) {
+        cerr << "Ошибка: Вектор должен содержать не менее трех различных чисел" << endl;
         return 1;
     }
 
@@ -125,27 +82,38 @@ int main() {
     int min_val = V.front();
     int max_val = V.back();
 
+    cout << "Минимальный элемент: " << min_val << endl;
+    cout << "Максимальный элемент: " << max_val << endl;
+
     // Шаг 3: находим позиции первого вхождения min_val и последнего вхождения max_val
     auto first_min = lower_bound(V.begin(), V.end(), min_val);
     auto last_max = upper_bound(V.begin(), V.end(), max_val) - 1;
 
-    // Шаг 4: выводим элементы между ними (исключая все вхождения min и max)
-    // first_min указывает на первый min, last_max указывает на последний max
+    // Шаг 4: подсчитываем количество вхождений min и max
     int count_min = upper_bound(V.begin(), V.end(), min_val) - first_min;
     int count_max = last_max - lower_bound(V.begin(), V.end(), max_val) + 1;
 
+    // Шаг 5: определяем диапазон для вывода (исключая все min и max)
     auto start = V.begin() + count_min;
     auto end = V.end() - count_max;
 
     cout << "\nРезультат (все элементы, кроме минимального " << min_val
         << " и максимального " << max_val << "): ";
+
     if (start < end) {
         copy(start, end, ptout_iterator(cout, " "));
+        cout << endl;
+
+        // Дополнительный вывод: показываем, сколько элементов осталось
+        cout << "\nКоличество выведенных элементов: " << (end - start) << endl;
     }
     else {
         cout << "(пусто)";
+        cout << "\nПосле удаления всех минимальных и максимальных элементов не осталось элементов" << endl;
     }
+
     cout << endl;
+
 
     return 0;
 }
