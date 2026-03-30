@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <vector>
 #include <algorithm>
@@ -53,6 +53,41 @@ public:
     }
 };
 
+// Итератор для вывода чисел в поток
+class ptout_iterator {
+    ostream* out_stream;
+    string delimiter;
+
+public:
+    using iterator_category = output_iterator_tag;
+    using value_type = void;
+    using difference_type = void;
+    using pointer = void;
+    using reference = void;
+
+    ptout_iterator(ostream& s, const string& delim = "  ") 
+        : out_stream(&s), delimiter(delim) {}
+
+    ptout_iterator& operator*() { return *this; }
+
+    ptout_iterator& operator=(int value) {
+        if (out_stream) {
+            *out_stream << value << delimiter;
+        }
+        return *this;
+    }
+
+    ptout_iterator& operator++() { return *this; }
+    ptout_iterator& operator++(int) { return *this; }
+};
+
+// Функция для вывода вектора
+void print_vector(const vector<int>& v, const string& message) {
+    cout << message;
+    copy(v.begin(), v.end(), ptout_iterator(cout, "  "));
+    cout << endl;
+}
+
 int main() {
     // Ввод имени файла
     cout << "Введите имя файла: ";
@@ -65,12 +100,9 @@ int main() {
     vector<int> numbers;
     ptin_iterator begin(cin);
     ptin_iterator end;
-
+    
     // Чтение потока ввода от начала до конца сразу в вектор
-    while (begin != end) {
-        numbers.push_back(*begin);
-        ++begin;
-    }
+    copy(begin, end, back_inserter(numbers));
 
     // Проверка на пустоту
     if (numbers.empty()) {
@@ -79,11 +111,7 @@ int main() {
     }
 
     // Вывод введённых чисел
-    cout << "\nВведено " << numbers.size() << " чисел: ";
-    for (int x : numbers) {
-        cout << x << "  ";
-    }
-    cout << endl;
+    print_vector(numbers, "\nВведено " + to_string(numbers.size()) + " чисел: ");
 
     // Открытие файла
     ofstream file(name);
@@ -92,20 +120,16 @@ int main() {
         return 1;
     }
 
-    // Запись в файл с заменой 0 на 10 
+    // Запись в файл с заменой 0 на 10
     ostream_iterator<int> out(file, "  ");
     replace_copy(numbers.begin(), numbers.end(), out, 0, 10);
 
     file.close();
 
     // Вывод результата
-    cout << "\nРезультат (с заменой 0 на 10): ";
     vector<int> result(numbers.size());
     replace_copy(numbers.begin(), numbers.end(), result.begin(), 0, 10);
-    for (int x : result) {
-        cout << x << "  ";
-    }
-    cout << endl;
+    print_vector(result, "\nРезультат (с заменой 0 на 10): ");
 
     cout << "\nЧисла записаны в файл " << name << endl;
 
