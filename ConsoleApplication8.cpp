@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <vector>
 #include <algorithm>
 #include <iterator>
@@ -93,23 +93,8 @@ void print_container(const Container& cont, const string& message) {
     cout << endl;
 }
 
-int main() {
-    setlocale(LC_ALL, "Russian");
-
-    cout << "Введите целые числа (для окончания ввода введите любой нечисловой символ):" << endl;
-    
-    // Чтение вектора из потока ввода от начала до конца
-    vector<int> V;
-    ptin_iterator begin(cin);
-    ptin_iterator end;
-    copy(begin, end, back_inserter(V));
-
-    if (V.size() < 3) {
-        cerr << "Ошибка: Вектор должен содержать не менее трех элементов" << endl;
-        return 1;
-    }
-
-    // Проверка, что в векторе есть хотя бы 3 различных числа
+// Функция для проверки наличия хотя бы 3 различных чисел
+bool check_three_distinct(const vector<int>& V) {
     vector<int> temp = V;
     sort(temp.begin(), temp.end());
     auto last = unique(temp.begin(), temp.end());
@@ -117,44 +102,57 @@ int main() {
 
     if (temp.size() < 3) {
         cerr << "Ошибка: Вектор должен содержать не менее трех различных чисел" << endl;
+        return false;
+    }
+    return true;
+}
+
+int main() {
+    setlocale(LC_ALL, "Russian");
+
+    cout << "Введите целые числа (для окончания ввода введите любой нечисловой символ):" << endl;
+
+    // Чтение вектора из потока ввода 
+    ptin_iterator begin_iter(cin);
+    ptin_iterator end_iter;
+    vector<int> V(begin_iter, end_iter);
+
+    if (V.size() < 3) {
+        cerr << "Ошибка: Вектор должен содержать не менее трех элементов" << endl;
+        return 1;
+    }
+
+    // Проверка, что в векторе есть хотя бы 3 различных числа
+    if (!check_three_distinct(V)) {
         return 1;
     }
 
     print_container(V, "\nИсходный вектор V: ");
 
-    // Создаем копию вектора для сортировки (исходный вектор не изменяем)
+    // Создаем копию вектора для сортировки
     vector<int> sortedV = V;
     sort(sortedV.begin(), sortedV.end());
 
     print_container(sortedV, "Отсортированный вектор: ");
 
     // Находим минимальный и максимальный элементы
-    int min_val = sortedV.front();
-    int max_val = sortedV.back();
+    int min_val = *min_element(sortedV.begin(), sortedV.end());
+    int max_val = *max_element(sortedV.begin(), sortedV.end());
 
     cout << "Минимальный элемент: " << min_val << endl;
     cout << "Максимальный элемент: " << max_val << endl;
 
-    // Подсчитываем количество вхождений min и max в отсортированной копии
-    int count_min = upper_bound(sortedV.begin(), sortedV.end(), min_val) - 
-                    lower_bound(sortedV.begin(), sortedV.end(), min_val);
-    int count_max = upper_bound(sortedV.begin(), sortedV.end(), max_val) - 
-                    lower_bound(sortedV.begin(), sortedV.end(), max_val);
-
-    // Определяем диапазон для вывода из отсортированной копии
-    auto start = sortedV.begin() + count_min;
-    auto end_it = sortedV.end() - count_max;
-
+    // Выводим все элементы, кроме минимального и максимального
     cout << "\nРезультат (все элементы, кроме минимального " << min_val
         << " и максимального " << max_val << "): ";
 
-    if (start < end_it) {
-        copy(start, end_it, ptout_iterator(cout, " "));
-        cout << endl;
-    }
-    else {
-        cout << "(пусто)" << endl;
-    }
+    // Используем copy_if для копирования элементов
+    copy_if(sortedV.begin(), sortedV.end(), ptout_iterator(cout, " "),
+        [min_val, max_val](int x) {
+            return x != min_val && x != max_val;
+        });
+
+    cout << endl;
 
     return 0;
 }
